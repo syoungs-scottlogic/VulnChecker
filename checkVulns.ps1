@@ -3,6 +3,11 @@
 v1/component/project
 contains RepositoryMeta which has the newer version.
 
+or just select object api call and filter what I need there.
+then add aws stuff array and bring 1 back. 
+
+https://stackoverflow.com/questions/37705139/psobject-array-in-powershell
+
 array
     name
     version
@@ -16,30 +21,46 @@ array
 #Invoke-WebRequest -Uri 'http://localhost:8081/api/v1/component/project/04444305-bac9-4a07-8b12-b83aa4e4523e' -token $token
 
 $Params = @{
-    "URI" = 'http://localhost:8081/api/v1/component/project/04444305-bac9-4a07-8b12-b83aa4e4523e'
-    "Method" = 'GET'
-    "Headers" = @{
-        "accept" = "application/json"
+    "URI"       = 'http://localhost:8081/api/v1/component/project/04444305-bac9-4a07-8b12-b83aa4e4523e'
+    "Method"    = 'GET'
+    "Headers"   = @{
+        "accept"    = "application/json"
         "X-Api-Key" = $token
     }
 }
 
-$request = Invoke-RestMethod @Params 
+
+[int]$awsCheck = 1
+
+$request = Invoke-RestMethod @Params
 
 $packages = $request | ConvertTo-Json | ConvertFrom-Json
 
-$packages | ft
+#$format = $packages | ft -Property name, version, purl, @{Name="latestVersion"; Expression={$_.repositoryMeta.latestVersion}}
 
 $packageArray = @()
 
+
 foreach ($item in $packages)
 {
-    if ($item.name -contains "aws")
+    if ($item -like "*aws*")
     {
-        # put the aws package into the array ONCE.
-    }
+        # add aws stuff
+        if($awsCheck -ne 0)
+        {
+            $item.name = "AWS Python package"
+            $packageArray += $item
+            $awsCheck = 0
+        }
 
+    }
     else {
-        # put packages into array.
+        $packageArray += $item
+        #echo "hello! -- $item"
     }
 }
+
+
+$format = $packageArray | ft -Property name, version, purl, @{Name="latestVersion"; Expression={$_.repositoryMeta.latestVersion}}
+#$packageArray
+$format
