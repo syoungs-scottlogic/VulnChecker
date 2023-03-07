@@ -61,6 +61,7 @@ foreach ($item in $packages)
 }
 
 
-$format = $packageArray | ft -Property name, version, purl, @{Name="latestVersion"; Expression={$_.repositoryMeta.latestVersion}}
+$format = $packageArray | Select-Object -Property name, version, purl, @{Name="latestVersion"; Expression={$_.repositoryMeta.latestVersion}}
 #$packageArray
-$format
+$format | Export-Csv -path .\result.csv -NoTypeInformation
+#$format
